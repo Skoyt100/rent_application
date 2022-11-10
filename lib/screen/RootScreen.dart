@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:beamer/beamer.dart';
-
-import '../theme/widgets/firstAlertDialog.dart';
+import 'package:provider/provider.dart';
+import 'package:rent_application/theme/model_theme.dart';
 
 /// Widget for the root/initial pages in the bottom navigation bar.
 class RootScreen extends StatefulWidget {
@@ -22,38 +22,52 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback(alertFirst);
+    //WidgetsBinding.instance.addPostFrameCallback(alertFirst);
     super.initState();
   }
 
-  void alertFirst(_) {
-    // Первое привествие
-    Future.delayed(Duration(seconds: 0), () {
-      showDialog(context: context, builder: (context) => FirstAlertDialog());
-    });
-  }
+  // void alertFirst(_) {
+  //   // Первое привествие
+  //   Future.delayed(Duration(seconds: 0), () {
+  //     showDialog(context: context, builder: (context) => FirstAlertDialog());
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tab root - ${widget.label}'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text('Screen ${widget.label}',
-                style: Theme.of(context).textTheme.titleLarge),
-            const Padding(padding: EdgeInsets.all(4)),
-            TextButton(
-              onPressed: () =>
-                  Beamer.of(context).beamToNamed(widget.detailsPath),
-              child: const Text('View details'),
-            ),
+    return Consumer<ModelTheme>(
+        builder: (context, ModelTheme themeNotifier, child) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Root Screen - ${widget.label}'),
+          actions: [
+            IconButton(
+                icon: Icon(themeNotifier.isDark
+                    ? Icons.nightlight_round
+                    : Icons.wb_sunny),
+                onPressed: () {
+                  themeNotifier.isDark
+                      ? themeNotifier.isDark = false
+                      : themeNotifier.isDark = true;
+                })
           ],
         ),
-      ),
-    );
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('Screen ${widget.label}',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const Padding(padding: EdgeInsets.all(4)),
+              TextButton(
+                onPressed: () =>
+                    Beamer.of(context).beamToNamed(widget.detailsPath),
+                child: const Text('View details'),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }

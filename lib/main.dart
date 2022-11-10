@@ -1,8 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:rent_application/models/ProfileModel.dart';
 import 'package:rent_application/screen/AuthScreen.dart';
 import 'package:rent_application/theme/model_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,6 +10,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:beamer/beamer.dart';
+
+import 'helpers/repository/firestore_service.dart';
+import 'screen/TabNavigator.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
+}
 
 //фоновое прослушивание уведомлений
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -20,25 +30,56 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
 }
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(MyApp());
-}
-
 class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  Map<String, dynamic> _deviceData = <String, dynamic>{};
+  static FirebaseAuth auth = FirebaseAuth.instance;
+  bool isLoadUser = true;
+  static ProfileModel currentUser = new ProfileModel(uid: '', name: '');
+
+  final routerDelegate = BeamerDelegate(
+    initialPath: '/a',
+    locationBuilder: RoutesLocationBuilder(
+      routes: {
+        '*': (context, state, data) => const ScaffoldWithBottomNavBar(),
+      },
+    ),
+  );
+
+  _initCurrentUser() async {
+    if (auth.currentUser?.uid.isNotEmpty ?? false) {
+      bool value =
+          await FirestoreService.initCurrentUser(auth.currentUser!.uid);
+      setState(() {
+        isLoadUser = value;
+      });
+    } else {
+      setState(() {
+        isLoadUser = false;
+      });
+    }
+    if (isLoadUser) {
+      FirestoreService.getUserById(auth.currentUser!.uid).then((value) {
+        if (value != null) {
+          setState(() {
+            currentUser = ProfileModel.fromJson(value);
+          });
+        }
+      });
+    }
+  }
+
   static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+  Map<String, dynamic> _deviceData = <String, dynamic>{};
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    _initCurrentUser();
   }
 
   Future<void> initPlatformState() async {
@@ -69,6 +110,38 @@ class _MyAppState extends State<MyApp> {
           _firebaseMessagingBackgroundHandler);
       _initFirebaseAndoridPushSdk();
     }
+  }
+
+  _initFirebaseAndoridPushSdk() async {
+    await Firebase.initializeApp();
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission();
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    print('fcmToken: $fcmToken');
+    print('User granted permission: ${settings.authorizationStatus}');
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+      }
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+      }
+    });
   }
 
   Map<String, dynamic> _readAndroidBuildData(AndroidDeviceInfo build) {
@@ -119,38 +192,6 @@ class _MyAppState extends State<MyApp> {
     };
   }
 
-  _initFirebaseAndoridPushSdk() async {
-    await Firebase.initializeApp();
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-    NotificationSettings settings = await messaging.requestPermission();
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    print('fcmToken: $fcmToken');
-    print('User granted permission: ${settings.authorizationStatus}');
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
-      }
-    });
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -158,18 +199,61 @@ class _MyAppState extends State<MyApp> {
       child: Consumer<ModelTheme>(
           builder: (context, ModelTheme themeNotifier, child) {
         return MaterialApp(
-          title: 'Flutter Demo',
-          theme: themeNotifier.isDark
-              ? ThemeData(
-                  brightness: Brightness.dark,
-                )
-              : ThemeData(
-                  brightness: Brightness.light,
-                  primaryColor: Colors.blue[700],
-                  primarySwatch: Colors.blue),
-          debugShowCheckedModeBanner: false,
-          home: const AuthScreen(),
-        );
+            title: 'Flutter Demo',
+            theme: themeNotifier.isDark
+                ? ThemeData(
+                    brightness: Brightness.dark,
+                  )
+                : ThemeData(
+                    brightness: Brightness.light,
+                    primaryColor: Colors.blue[700],
+                    primarySwatch: Colors.blue),
+            debugShowCheckedModeBanner: false,
+            home: FutureBuilder(
+                future: Firebase.initializeApp(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    print('error');
+                  } else {
+                    if (currentUser.uid != '') {
+                      //Здесь возвращается нижняя панель навигации
+                      return ChangeNotifierProvider(
+                          create: (_) => ModelTheme(),
+                          child: Consumer<ModelTheme>(builder:
+                              (context, ModelTheme themeNotifier, child) {
+                            return MaterialApp.router(
+                              debugShowCheckedModeBanner: false,
+                              theme: themeNotifier.isDark
+                                  ? ThemeData(
+                                      brightness: Brightness.dark,
+                                    )
+                                  : ThemeData(
+                                      brightness: Brightness.light,
+                                      primaryColor: Colors.blue[700],
+                                      primarySwatch: Colors.blue),
+                              routerDelegate: routerDelegate,
+                              routeInformationParser: BeamerParser(),
+                              backButtonDispatcher: BeamerBackButtonDispatcher(
+                                delegate: routerDelegate,
+                              ),
+                            );
+                          }));
+                    } else if (!isLoadUser) {
+                      return AuthScreen();
+                    } else {
+                      return Scaffold(
+                        body: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                  }
+                  return Scaffold(
+                    body: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }));
       }),
     );
   }

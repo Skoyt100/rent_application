@@ -196,6 +196,24 @@ class FireBaseAuth {
       );
     }
   }
+
+  static Future<Object?> addUser(
+      {required String name,
+      required String uid,
+      required BuildContext context}) async {
+    return fbFirestore
+        .collection('users')
+        .doc(uid)
+        .set({
+          'name': name, // John Doe
+
+          'uid': uid, // 42
+        })
+        .then((value) => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => TabNavigator()),
+            ))
+        .catchError((error) => print("Failed to add user: $error"));
+  }
 }
 
 class LoginResult {}
