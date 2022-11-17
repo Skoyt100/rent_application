@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class ProfileModel {
   String uid;
@@ -9,8 +10,8 @@ class ProfileModel {
     required this.name,
   });
 
-  factory ProfileModel.fromJson(Map json) => ProfileModel(
-        uid: json['uid'] ?? null,
-        name: json['name'] ?? null,
+  factory ProfileModel.fromJson(Map jcon) => ProfileModel(
+        uid: jcon['uid'] ?? Icons.signal_cellular_null,
+        name: jcon['name'] ?? null,
       );
 }

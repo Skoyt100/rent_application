@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rent_application/helpers/repository/firestore_service.dart';
 import 'package:rent_application/helpers/size_config.dart';
 
 class AddHomePhoneForm extends StatefulWidget {
@@ -15,6 +16,25 @@ class _AddHomePhoneFormState extends State<AddHomePhoneForm> {
   }
 
   @override
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> formKeyRegister = GlobalKey<FormState>();
+  Key _k1 = new GlobalKey();
+  Key _k2 = new GlobalKey();
+
+  String _address = '';
+  String _code = '';
+
+  void _validateHomePhoneData() async {
+    final FormState? form = formKey.currentState;
+    if (formKey.currentState!.validate()) {
+      form!.save();
+      FirestoreService.addHomePhone(_address, _code);
+    } else if (!formKey.currentState!.validate()) {
+      //CustomSnackBar(context, Text('Заполните поле'), Colors.red);
+    }
+  }
+
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -46,8 +66,42 @@ class _AddHomePhoneFormState extends State<AddHomePhoneForm> {
                 SizedBox(
                   height: 35.0.toAdaptive(context),
                 ),
-                TextFormField(),
-                TextFormField(),
+                Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          key: _k1,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Поле не должно быть пустым';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (input) {
+                            setState(() {
+                              _address = input!;
+                            });
+                          },
+                        ),
+                        TextFormField(
+                          key: _k2,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Поле не должно быть пустым';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (input) {
+                            setState(() {
+                              _code = input!;
+                            });
+                          },
+                        ),
+                      ],
+                    )),
                 SizedBox(
                   height: 35.0.toAdaptive(context),
                 ),
@@ -58,7 +112,9 @@ class _AddHomePhoneFormState extends State<AddHomePhoneForm> {
                       color: Colors.red,
                       width: MediaQuery.of(context).size.width / 2.5,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _validateHomePhoneData();
+                        },
                         child: const Text('Добавить',
                             style: TextStyle(color: Colors.white)),
                       ),

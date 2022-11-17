@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'package:rent_application/helpers/message_exception.dart';
 import 'package:rent_application/helpers/repository/constant_firebase.dart';
 import 'package:rent_application/screen/TabNavigator.dart';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:beamer/beamer.dart';
+import 'package:rent_application/screen/notes/AddHomePhoneForm.dart';
 
 /// The details screen for either the A or B screen.
 class NoteHomePhoneDetailScreen extends StatefulWidget {
@@ -39,7 +40,12 @@ class NoteHomePhoneDetailScreenState extends State<NoteHomePhoneDetailScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => {},
+        onPressed: () {
+          setState(() {
+            showDialog(
+                context: context, builder: (context) => AddHomePhoneForm());
+          });
+        },
         //Beamer.of(context).beamToNamed(widget.detailsHomePhonePath),
         tooltip: 'Increment',
         child: const Icon(Icons.add),
