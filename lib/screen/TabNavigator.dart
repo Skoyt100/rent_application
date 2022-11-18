@@ -3,6 +3,9 @@ import 'package:beamer/beamer.dart';
 import 'package:provider/provider.dart';
 import 'package:rent_application/screen/DetailScreen.dart';
 import 'package:rent_application/screen/RootScreen.dart';
+import 'package:rent_application/screen/notes/NoteApartmentsScreen.dart';
+import 'package:rent_application/screen/notes/NoteHomePhoneDatailScreen.dart';
+import 'package:rent_application/screen/notes/NotesScreen.dart';
 import 'package:rent_application/theme/model_theme.dart';
 
 class TabNavigator extends StatelessWidget {
@@ -56,13 +59,29 @@ class ALocation extends BeamLocation<BeamState> {
           key: ValueKey('a'),
           title: 'Tab A',
           type: BeamPageType.noTransition,
-          child: RootScreen(label: 'A', detailsPath: '/a/details'),
+          child: NotesScreen(
+              label: 'A',
+              detailsPath: '/a/notedetails',
+              detailsHomePhonePath: '/a/notedetails/notehomephonedetails',
+              detailsApartmentsPath: '/a/notedetails/noteapartmentdetails'),
         ),
-        if (state.uri.pathSegments.length == 2)
+        if (state.uri.pathSegments.length == 3 &&
+            state.uri.path == '/a/notedetails/notehomephonedetails')
           const BeamPage(
-            key: ValueKey('a/details'),
-            title: 'Details A',
-            child: DetailsScreen(label: 'A'),
+            key: ValueKey('/a/notedetails/notehomephonedetails'),
+            title: 'Details Note',
+            child: NoteHomePhoneDetailScreen(
+                label: 'Note',
+                detailsHomePhonePath: '/a/notedetails/notehomephonedetails'),
+          ),
+        if (state.uri.pathSegments.length == 3 &&
+            state.uri.path == '/a/notedetails/noteapartmentdetails')
+          const BeamPage(
+            key: ValueKey('/a/notedetails/notehomephonedetails'),
+            title: 'Details Note',
+            child: NoteApartmentsScreen(
+                label: 'Note',
+                detailsApartmentPath: '/a/notedetails/noteapartmentdetails'),
           ),
       ];
 }

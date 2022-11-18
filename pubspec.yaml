@@ -56,12 +56,19 @@ dev_dependencies:
   progress_dialog: ^1.2.4
   beamer: ^1.5.3
   device_info_plus: ^4.1.2
+  multi_image_picker: ^4.7.15
+  cached_network_image: ^2.5.1
+  image_picker: ^0.8.6
+  firebase_storage: ^11.0.4
+  flutter_rounded_progress_bar: ^0.2.0
+
+
   
   #firebase depencides
-  firebase_core: ^1.17.1
-  firebase_messaging: ^11.2.12
+  firebase_core: ^2.1.1
+  firebase_messaging: ^14.0.3
   firebase_auth: any
-  cloud_firestore: ^3.1.8
+  cloud_firestore: ^4.0.3
   
 
 
